@@ -37,7 +37,7 @@ class GroupOrthConv(nn.Module):
             newsconv = Orth_Conv2d(in_channels, int(self.gourp_out_channels[i]),
                             kernel_size=kernel_size, stride=stride, padding=padding,
                              bias=bias)
-            self.add_module('sconv',newsconv)
+            self.add_module('sconv_'+str(i),newsconv)
             self.sconvs.append(newsconv)
 
     def forward(self,x):
