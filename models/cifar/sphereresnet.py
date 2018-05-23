@@ -97,7 +97,7 @@ class SphereResNet(nn.Module):
         assert (depth - 2) % 6 == 0, 'depth should be 6n+2'
         n = (depth - 2) // 6
 
-        block = Bottleneck if depth >=44 else BasicBlock
+        block = SphereBottleneck if depth >=44 else SphereBasicBlock
 
         self.inplanes = nfilter[0]
         self.conv1 = Sphere_Conv2d(3, self.inplanes, kernel_size=3, padding=1,
