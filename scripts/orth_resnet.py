@@ -15,7 +15,7 @@ SHOW_SV_INFO = False
 SHOW_SV_EPOCH = []
 
 # Orth Parameters
-ORTH_REG = 0.01
+ORTH_REG = 0.1
 WEIGHT_DECAY = 0
 
 main()

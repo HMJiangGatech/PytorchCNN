@@ -243,7 +243,7 @@ def train(train_loader, model, criterion, optimizer, epoch, verbose = True, verb
         output = model(input)
         loss = criterion(output, target)
         if ORTH_REG > 0:
-            loss += ORTH_REG*model.orth_reg()
+            orth_loss = ORTH_REG*model.orth_reg()
 
         # measure accuracy and record loss
         prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
@@ -254,6 +254,7 @@ def train(train_loader, model, criterion, optimizer, epoch, verbose = True, verb
         # compute gradient and do SGD step
         optimizer.zero_grad()
         loss.backward()
+        orth_loss.backward()
         optimizer.step()
 
         if USE_PROJ:
