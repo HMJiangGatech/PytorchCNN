@@ -243,7 +243,7 @@ def train(train_loader, model, criterion, optimizer, epoch, verbose = True, verb
         output = model(input)
         loss = criterion(output, target)
         if ORTH_REG > 0:
-            orth_loss = ORTH_REG*model.orth_reg()
+            loss += ORTH_REG*model.orth_reg()
 
         # measure accuracy and record loss
         prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
