@@ -58,7 +58,8 @@ USE_CUDA = torch.cuda.is_available()
 
 if USE_CUDA:
     print('GPU IS AVAILABLE TO USE')
-    torch.set_default_tensor_type("torch.cuda.FloatTensor")
+    cudnn.benchmark = True
+DEVICE = torch.device("cuda:0" if USE_CUDA else "cpu")
 
 FloatTensor = torch.cuda.FloatTensor if USE_CUDA else torch.FloatTensor
 LongTensor = torch.cuda.LongTensor if USE_CUDA else torch.LongTensor
@@ -128,15 +129,10 @@ def main():
     # set up model
     if USE_PRETRAINED:
         print("=> using pre-trained model '{}'".format(ARCH))
-        model = models.__dict__[ARCH](num_classes=num_classes,pretrained=True)
+        model = models.__dict__[ARCH](num_classes=num_classes,pretrained=True).to(DEVICE)
     else:
         print("=> creating model '{}'".format(ARCH))
-        model = models.__dict__[ARCH](num_classes=num_classes)
-
-    if USE_CUDA:
-        model.features = torch.nn.DataParallel(model.features)
-        model.cuda()
-        cudnn.benchmark = True
+        model = models.__dict__[ARCH](num_classes=num_classes).to(DEVICE)
 
     print('    Total params: %.2fM' % (sum(p.numel() for p in model.parameters())/1000000.0))
 
