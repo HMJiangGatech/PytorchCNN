@@ -173,18 +173,18 @@ def main():
         adjust_learning_rate(optimizer, epoch,LEARNING_RATE,LRDECAY_SCHEDULE)
 
         # train for one epoch
-        train_acu_top1,train_acu_top5 = train(train_loader, model, criterion, optimizer, epoch, verbose = SHOW_PROGRESS)
-        train_acu_top1.append(train_acu_top1)
-        train_acu_top5.append(train_acu_top5)
+        acu_top1,acu_top5 = train(train_loader, model, criterion, optimizer, epoch, verbose = SHOW_PROGRESS)
+        train_acu_top1.append(acu_top1)
+        train_acu_top5.append(acu_top5)
 
         # evaluate on validation set
-        test_acu_top1, test_acu_top5 = validate(test_loader, model, criterion, verbose = False)
-        test_acu_top1.append(test_acu_top1)
-        test_acu_top5.append(test_acu_top5)
+        acu_top1, acu_top5 = validate(test_loader, model, criterion, verbose = False)
+        test_acu_top1.append(acu_top1)
+        test_acu_top5.append(acu_top5)
 
         # remember best prec@1 and save checkpoint
-        is_best = test_acu_top1 > best_prec1
-        best_prec1 = max(test_acu_top1, best_prec1)
+        is_best = acu_top1 > best_prec1
+        best_prec1 = max(acu_top1, best_prec1)
         save_checkpoint({
             'epoch': epoch + 1,
             'arch': ARCH,
@@ -241,7 +241,7 @@ def train(train_loader, model, criterion, optimizer, epoch, verbose = True, verb
 
         # measure accuracy and record loss
         prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
-        losses.update(loss.data[0], input.size(0))
+        losses.update(loss.data.item(), input.size(0))
         top1.update(prec1[0], input.size(0))
         top5.update(prec5[0], input.size(0))
 
@@ -294,7 +294,7 @@ def validate(test_loader, model, criterion, verbose = True, verbose_sum = True):
 
         # measure accuracy and record loss
         prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
-        losses.update(loss.data[0], input.size(0))
+        losses.update(loss.data.item(), input.size(0))
         top1.update(prec1[0], input.size(0))
         top5.update(prec5[0], input.size(0))
 
