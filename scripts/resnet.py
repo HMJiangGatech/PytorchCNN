@@ -16,5 +16,4 @@ SHOW_SV_EPOCH = []
 
 main()
 DATASET = "cifar100"
-ORTH_WEI = 0.1
 main()
