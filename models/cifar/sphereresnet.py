@@ -22,7 +22,7 @@ class SphereBasicBlock(nn.Module):
     expansion = 1
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(BasicBlock, self).__init__()
+        super(SphereBasicBlock, self).__init__()
         self.conv1 = sphereconv3x3(inplanes, planes, stride)
         self.bn1 = nn.BatchNorm2d(planes)
         self.relu = nn.ReLU(inplace=True)
@@ -54,7 +54,7 @@ class SphereBottleneck(nn.Module):
     expansion = 4
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(Bottleneck, self).__init__()
+        super(SphereBottleneck, self).__init__()
         self.conv1 = Sphere_Conv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
         self.conv2 = Sphere_Conv2d(planes, planes, kernel_size=3, stride=stride,
