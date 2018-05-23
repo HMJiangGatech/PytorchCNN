@@ -1,4 +1,4 @@
-ARCH = "wresnet32"
+ARCH = "wresnet20"
 DATASET = "cifar10"
 LEARNING_RATE = 0.1
 MOMENTUM_RATE = 0.9
