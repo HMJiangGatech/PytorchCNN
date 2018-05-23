@@ -14,6 +14,9 @@ PRINT_FREQ = 78
 SHOW_SV_INFO = False
 SHOW_SV_EPOCH = []
 
+# Sphere Parameters
+WEIGHT_DECAY = 0
+
 main()
 DATASET = "cifar100"
 main()
