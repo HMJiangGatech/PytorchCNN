@@ -35,6 +35,8 @@ class Orth_Plane_Conv2d(_ConvNd):
             in_channels, out_channels, kernel_size, stride, padding, dilation,
             False, _pair(0), groups, bias)
 
+        self.register_buffer('Im',torch.eye(out_channels))
+
         self.eps = 1e-8
         n = self.kernel_size[0] * self.kernel_size[1] * self.out_channels
         self.weight.data.normal_(0, math.sqrt(2. / n))
@@ -79,9 +81,9 @@ class Orth_Plane_Conv2d(_ConvNd):
         print('mean:',s.mean())
         print('min :',s.min())
         print('var :',s.var())
-        print('penalty :', (W.mm(W.t())-torch.eye(outputSize)).norm()**2  )
+        print('penalty :', (W.mm(W.t())-self.Im).norm()**2  )
 
     def orth_reg(self):
         outputSize = self.weight.data.size()[0]
         W = self.weight.view(outputSize,-1)
-        return ((W.mm(W.t())-torch.eye(outputSize))**2).sum()
+        return ((W.mm(W.t())-self.Im)**2).sum()
