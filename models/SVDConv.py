@@ -8,6 +8,7 @@ from torch.nn.modules.conv import _ConvNd
 from torch.nn.modules import Module
 from torch.nn import functional as F
 from torch.autograd import Variable
+from torch.nn.parameter import Parameter
 import math
 
 __all__ = ['SVDConv2d']
