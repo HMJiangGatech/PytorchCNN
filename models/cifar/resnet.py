@@ -6,6 +6,8 @@ https://github.com/facebook/fb.resnet.torch
 and
 https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py
 (c) YANG, Wei
+
+WResnet is 4x wider 
 '''
 import torch.nn as nn
 import math
