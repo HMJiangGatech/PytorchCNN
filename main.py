@@ -135,15 +135,10 @@ def main():
         model = models.__dict__[ARCH](num_classes=num_classes).to(DEVICE)
 
     print('    Total params: %.2fM' % (sum(p.numel() for p in model.parameters())/1000000.0))
-
+    print(model)
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss()
-    if USE_CUDA:
-        criterion = criterion.cuda()
     optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=MOMENTUM_RATE, weight_decay=WEIGHT_DECAY)
-    # ProjSGD(model, lr = LEARNING_RATE, momentum=MOMENTUM_RATE,
-    #     weight_decay=WEIGHT_DECAY, project_norm=USE_PROJ_CONV_NORM, l2_reg = USE_L2REG,
-    #     orth_reg = USE_ORTHREG, reg_weight = ORTH_WEI, manifold_grad = USE_MANIFOLD_GRAD)
 
     # check if we can load checkpoint
     global START_EPOCH
