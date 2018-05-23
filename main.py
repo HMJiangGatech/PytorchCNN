@@ -179,7 +179,7 @@ def main():
     test_acu_top1 = []
     test_acu_top5 = []
     for epoch in range(START_EPOCH, EPOCHES):
-        adjust_learning_rate(optimizer_d, epoch,LEARNING_RATE,LRDECAY_SCHEDULE)
+        adjust_learning_rate(optimizer, epoch,LEARNING_RATE,LRDECAY_SCHEDULE)
 
         # train for one epoch
         train_acu_top1,train_acu_top5 = train(train_loader, model, criterion, optimizer, epoch, verbose = SHOW_PROGRESS)
