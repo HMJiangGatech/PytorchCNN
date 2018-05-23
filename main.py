@@ -254,7 +254,6 @@ def train(train_loader, model, criterion, optimizer, epoch, verbose = True, verb
         # compute gradient and do SGD step
         optimizer.zero_grad()
         loss.backward()
-        orth_loss.backward()
         optimizer.step()
 
         if USE_PROJ:
