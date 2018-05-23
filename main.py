@@ -26,7 +26,6 @@ import torchvision
 import torchvision.transforms
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
-from models.projsgd import ProjSGD
 
 
 # Define Parameters
