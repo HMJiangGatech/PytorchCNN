@@ -59,14 +59,6 @@ class Sphere_Conv2d(_ConvNd):
         '''
         originSize = self.weight.data.size()
         outputSize = self.weight.data.size()[0]
-        # if manifold_grad:
-        #     # Compute the qr factorization
-        #     q, r = torch.qr(self.weight.data.view(outputSize,-1).t())
-        #     # Make Q uniform according to https://arxiv.org/pdf/math-ph/0609050.pdf
-        #     d = torch.diag(r, 0)
-        #     ph = d.sign()
-        #     q *= ph
-        #     self.weight.data = q.t().view(originSize)
         self.weight.data =  self.weight.data/ torch.norm(self.weight.data.view(outputSize,-1),2,1).clamp(min = 1e-8).view(-1,1,1,1)
 
     def showOrthInfo(self):

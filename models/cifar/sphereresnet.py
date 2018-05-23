@@ -149,6 +149,16 @@ class SphereResNet(nn.Module):
 
         return x
 
+    def project(self):
+        for m in self.modules():
+            if isinstance(m, Sphere_Conv2d):
+                m.project()
+
+    def showOrthInfo(self):
+        for m in self.modules():
+            if isinstance(m, Sphere_Conv2d):
+                m.showOrthInfo()
+
 
 def sphere_resnet(**kwargs):
     """

@@ -156,12 +156,8 @@ class OrthResNet(nn.Module):
             if isinstance(m, nn.Conv2d):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
                 m.weight.data.normal_(0, math.sqrt(2. / n))
-        for m_name, m in self.named_modules():
-            if 'bn' in m_name:
-                if rescale_bn and 'bn2' in m_name and 'layer' in m_name:
-                    m.weight.data.fill_(1/self.depth)
-                else:
-                    m.weight.data.fill_(1)
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
                 m.bias.data.zero_()
 
     def _make_layer(self, block, planes, blocks, stride=1):
@@ -188,34 +184,14 @@ class OrthResNet(nn.Module):
 
         return x
 
-    # I dont think we should prune batch normalization and nerver tried
-    def prune(self, sparsity, create_mask = True, prune_bias = False, prune_bn = False):
-        first_layer = True
-        if create_mask:
-            self.masks = []
-        masksid = -1
+    def orth_reg(self):
+        reg = 0
         for m in self.modules():
-            if isinstance(m, Orth_Conv2d) or isinstance(m, nn.Linear) or (isinstance(m,nn.BatchNorm2d) and prune_bn):
-                if first_layer:
-                    first_layer = False
-                else:
-                    if create_mask:
-                        prune_k = int(m.weight.numel()*(sparsity))
-                        val, _ = m.weight.view(-1).abs().topk(prune_k, largest = False)
-                        prune_threshold = val[-1]
-                        self.masks.append((m.weight.abs()<=prune_threshold).data)
-                    masksid += 1
-                    m.weight.data.masked_fill_(self.masks[masksid], 0)
-                    if prune_bias:
-                        if create_mask:
-                            prune_k = int(m.bias.numel()*(sparsity))
-                            val, _ = m.bias.view(-1).abs().topk(prune_k, largest = False)
-                            prune_threshold = val[-1]
-                            self.masks.append((m.bias.abs()<=prune_threshold).data)
-                        masksid += 1
-                        m.bias.data.masked_fill_(self.masks[masksid], 0)
+            if isinstance(m, Orth_Conv2d):
+                reg += m.orth_reg()
+        return reg
 
-    def project(self, manifold_grad = False):
+    def project(self):
         for m in self.modules():
             if isinstance(m, Orth_Conv2d):
                 m.project()

@@ -44,6 +44,9 @@ LRDECAY_SCHEDULE = []
 LRDECAYRATE = 0.1
 BATCH_SIZE = 128
 
+USE_PROJ = False
+ORTH_REG = 0
+
 PRINT_FREQ = 100
 SHOW_PROGRESS = False
 SHOW_SV_INFO = False # show Singular Value Info
@@ -76,6 +79,8 @@ stdout_backup = sys.stdout
 def main():
     # make dictionary to store model
     ROOTPATH = os.path.dirname(os.path.abspath(__file__)) + "/results/"
+    if not os.path.exists(ROOTPATH):
+        os.mkdir(ROOTPATH)
     ROOTPATH += ARCH+"_"+DATASET
     print('ROOTPATH is %s' %ROOTPATH)
     if not os.path.exists(ROOTPATH):
@@ -219,7 +224,7 @@ def main():
     plt.close()
 
 
-def train(train_loader, model, criterion, optimizer, epoch, verbose = True, verbose_sum = True, prune = False):
+def train(train_loader, model, criterion, optimizer, epoch, verbose = True, verbose_sum = True):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -240,6 +245,8 @@ def train(train_loader, model, criterion, optimizer, epoch, verbose = True, verb
         # compute output
         output = model(input)
         loss = criterion(output, target)
+        if ORTH_REG > 0:
+            loss += ORTH_REG*model.orth_reg()
 
         # measure accuracy and record loss
         prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
@@ -251,8 +258,9 @@ def train(train_loader, model, criterion, optimizer, epoch, verbose = True, verb
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        if prune:
-            model.prune(sparsity = SPARSITY, create_mask = False, prune_bias = PRUNEBIAS)
+
+        if USE_PROJ:
+            model.project()
 
         # measure elapsed time
         batch_time.update(time.time() - end)
