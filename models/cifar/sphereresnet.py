@@ -1,18 +1,19 @@
 from __future__ import absolute_import
 
-'''ShpereNet
+'''SphereNet
+
+WResnet is 4x wider
 '''
 import torch.nn as nn
 import math
 from ..SphereConv import Sphere_Conv2d
 
 
-__all__ = ['sphere_resnet','sphere_resnet110','sphere_resnet56','sphere_resnet44',
-           'sphere_resnet32','sphere_resnet20','sphere_wresnet20','sphere_wresnet32',
-           'sphere_wresnet44', 'sphere_wresnet110']
+__all__ = ['sphere_resnet','sphere_resnet110','sphere_resnet56','sphere_resnet44','sphere_resnet32','sphere_resnet20',
+            'sphere_wresnet20','sphere_wresnet32','sphere_wresnet44','sphere_wresnet110']
 
-def sphere_conv3x3(in_planes, out_planes, stride=1):
-    "sphere 3x3 convolution with padding"
+def sphereconv3x3(in_planes, out_planes, stride=1):
+    "3x3 convolution with padding"
     return Sphere_Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
                      padding=1, bias=False)
 
@@ -21,11 +22,11 @@ class SphereBasicBlock(nn.Module):
     expansion = 1
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(SphereBasicBlock, self).__init__()
-        self.sconv1 = sphere_conv3x3(inplanes, planes, stride)
+        super(BasicBlock, self).__init__()
+        self.conv1 = sphereconv3x3(inplanes, planes, stride)
         self.bn1 = nn.BatchNorm2d(planes)
         self.relu = nn.ReLU(inplace=True)
-        self.sconv2 = sphere_conv3x3(planes, planes)
+        self.conv2 = sphereconv3x3(planes, planes)
         self.bn2 = nn.BatchNorm2d(planes)
         self.downsample = downsample
         self.stride = stride
@@ -33,11 +34,11 @@ class SphereBasicBlock(nn.Module):
     def forward(self, x):
         residual = x
 
-        out = self.sconv1(x)
+        out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
 
-        out = self.sconv2(out)
+        out = self.conv2(out)
         out = self.bn2(out)
 
         if self.downsample is not None:
@@ -53,13 +54,13 @@ class SphereBottleneck(nn.Module):
     expansion = 4
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(SphereBottleneck, self).__init__()
-        self.sconv1 = Sphere_Conv2d(inplanes, planes, kernel_size=1, bias=False)
+        super(Bottleneck, self).__init__()
+        self.conv1 = Sphere_Conv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
-        self.sconv2 = Sphere_Conv2d(planes, planes, kernel_size=3, stride=stride,
+        self.conv2 = Sphere_Conv2d(planes, planes, kernel_size=3, stride=stride,
                                padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
-        self.sconv3 = Sphere_Conv2d(planes, planes * self.expansion, kernel_size=1, bias=False)
+        self.conv3 = Sphere_Conv2d(planes, planes * self.expansion, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes * self.expansion)
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
@@ -68,15 +69,15 @@ class SphereBottleneck(nn.Module):
     def forward(self, x):
         residual = x
 
-        out = self.sconv1(x)
+        out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
 
-        out = self.sconv2(out)
+        out = self.conv2(out)
         out = self.bn2(out)
         out = self.relu(out)
 
-        out = self.sconv3(out)
+        out = self.conv3(out)
         out = self.bn3(out)
 
         if self.downsample is not None:
@@ -90,17 +91,16 @@ class SphereBottleneck(nn.Module):
 
 class SphereResNet(nn.Module):
 
-    def __init__(self, depth, nfilter = [16,32,64], num_classes=10, rescale_bn=False):
+    def __init__(self, depth, nfilter = [16,32,64], num_classes=10):
         super(SphereResNet, self).__init__()
         # Model type specifies number of layers for CIFAR-10 model
         assert (depth - 2) % 6 == 0, 'depth should be 6n+2'
         n = (depth - 2) // 6
-        self.depth = n*3
 
-        block = SphereBottleneck if depth >=44 else SphereBasicBlock
+        block = Bottleneck if depth >=44 else BasicBlock
 
         self.inplanes = nfilter[0]
-        self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=3, padding=1,
+        self.conv1 = Sphere_Conv2d(3, self.inplanes, kernel_size=3, padding=1,
                                bias=False)
         self.bn1 = nn.BatchNorm2d(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
@@ -121,22 +121,15 @@ class SphereResNet(nn.Module):
         )
 
         for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-        for m_name, m in self.named_modules():
-            if 'bn' in m_name:
-                if rescale_bn and 'bn2' in m_name and 'layer' in m_name:
-                    m.weight.data.fill_(1/self.depth)
-                else:
-                    m.weight.data.fill_(1)
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
                 m.bias.data.zero_()
 
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
-                nn.Conv2d(self.inplanes, planes * block.expansion,
+                Sphere_Conv2d(self.inplanes, planes * block.expansion,
                           kernel_size=1, stride=stride, bias=False),
                 nn.BatchNorm2d(planes * block.expansion),
             )
@@ -155,16 +148,6 @@ class SphereResNet(nn.Module):
         x = self.fc(x)
 
         return x
-
-    def project(self, manifold_grad = False):
-        for m in self.modules():
-            if isinstance(m, Sphere_Conv2d):
-                m.project(manifold_grad = manifold_grad)
-
-    def showOrthInfo(self):
-        for m in self.modules():
-            if isinstance(m, Sphere_Conv2d):
-                m.showOrthInfo()
 
 
 def sphere_resnet(**kwargs):

@@ -31,7 +31,7 @@ class Sphere_Conv2d(_ConvNd):
         if norm:
             self.register_buffer('input_norm_wei',torch.ones(1, in_channels // groups, *kernel_size))
 
-        if (doini == 1):
+        if doini == 1:
             n = self.kernel_size[0] * self.kernel_size[1] * self.out_channels
             self.weight.data.normal_(0, math.sqrt(2. / n))
         elif doini == 2:

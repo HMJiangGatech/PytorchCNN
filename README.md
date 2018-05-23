@@ -17,12 +17,14 @@ Pytorch CNN Benchmark, From *Flash Lab, Gatech*
 
 | Model                     | Plane | Orth  | Sphere| SN    | D-opt |
 | -------------------       | ----- | ----- | ----- | ----- | ----- |
+| ResNet-20                 | 92.55 |
 | ResNet-32                 | 93.01 |
 
 ### CIFAR100 Benchmark
 
 | Model                     | Plane | Orth  | Sphere| SN    | D-opt |
 | -------------------       | ----- | ----- | ----- | ----- | ----- |
+| ResNet-20                 | 68.51 |
 | ResNet-32                 | 70.84 |
 
 ### ImageNet Benchmark
