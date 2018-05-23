@@ -1,32 +1,32 @@
 from __future__ import absolute_import
 
-'''SNNet
+'''SVDNet
 
 WResnet is 4x wider
 '''
 import torch.nn as nn
 import math
-from ..SNConv import SNConv2d
+from ..SVDConv import SVDConv2d
 
 
-__all__ = ['sn_resnet','sn_resnet110','sn_resnet56','sn_resnet44','sn_resnet32','sn_resnet20',
-            'sn_wresnet20','sn_wresnet32','sn_wresnet44','sn_wresnet110']
+__all__ = ['svd_resnet','svd_resnet110','svd_resnet56','svd_resnet44','svd_resnet32','svd_resnet20',
+            'svd_wresnet20','svd_wresnet32','svd_wresnet44','svd_wresnet110']
 
-def snconv3x3(in_planes, out_planes, stride=1):
+def svdconv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
-    return SNConv2d(in_planes, out_planes, kernel_size=3, stride=stride,
+    return SVDConv2d(in_planes, out_planes, kernel_size=3, stride=stride,
                      padding=1, bias=False)
 
 
-class SNBasicBlock(nn.Module):
+class SVDBasicBlock(nn.Module):
     expansion = 1
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(SNBasicBlock, self).__init__()
-        self.conv1 = snconv3x3(inplanes, planes, stride)
+        super(SVDBasicBlock, self).__init__()
+        self.conv1 = svdconv3x3(inplanes, planes, stride)
         self.bn1 = nn.BatchNorm2d(planes)
         self.relu = nn.ReLU(inplace=True)
-        self.conv2 = snconv3x3(planes, planes)
+        self.conv2 = svdconv3x3(planes, planes)
         self.bn2 = nn.BatchNorm2d(planes)
         self.downsample = downsample
         self.stride = stride
@@ -50,17 +50,17 @@ class SNBasicBlock(nn.Module):
         return out
 
 
-class SNBottleneck(nn.Module):
+class SVDBottleneck(nn.Module):
     expansion = 4
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(SNBottleneck, self).__init__()
-        self.conv1 = SNConv2d(inplanes, planes, kernel_size=1, bias=False)
+        super(SVDBottleneck, self).__init__()
+        self.conv1 = SVDConv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
-        self.conv2 = SNConv2d(planes, planes, kernel_size=3, stride=stride,
+        self.conv2 = SVDConv2d(planes, planes, kernel_size=3, stride=stride,
                                padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
-        self.conv3 = SNConv2d(planes, planes * self.expansion, kernel_size=1, bias=False)
+        self.conv3 = SVDConv2d(planes, planes * self.expansion, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes * self.expansion)
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
@@ -97,10 +97,10 @@ class SNResNet(nn.Module):
         assert (depth - 2) % 6 == 0, 'depth should be 6n+2'
         n = (depth - 2) // 6
 
-        block = SNBottleneck if depth >=44 else SNBasicBlock
+        block = SVDBottleneck if depth >=44 else SVDBasicBlock
 
         self.inplanes = nfilter[0]
-        self.conv1 = SNConv2d(3, self.inplanes, kernel_size=3, padding=1,
+        self.conv1 = SVDConv2d(3, self.inplanes, kernel_size=3, padding=1,
                                bias=False)
         self.bn1 = nn.BatchNorm2d(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
@@ -129,7 +129,7 @@ class SNResNet(nn.Module):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
-                SNConv2d(self.inplanes, planes * block.expansion,
+                SVDConv2d(self.inplanes, planes * block.expansion,
                           kernel_size=1, stride=stride, bias=False),
                 nn.BatchNorm2d(planes * block.expansion),
             )
@@ -149,24 +149,38 @@ class SNResNet(nn.Module):
 
         return x
 
+    def orth_reg(self):
+        reg = 0
+        for m in self.modules():
+            if isinstance(m, SVDConv2d):
+                reg += m.orth_reg()
+        return reg
+
+    def spectral_reg(self):
+        reg = 0
+        for m in self.modules():
+            if isinstance(m, SVDConv2d):
+                reg += m.spectral_reg()
+        return reg
+
     def project(self):
         for m in self.modules():
-            if isinstance(m, SNConv2d):
+            if isinstance(m, SVDConv2d):
                 m.project()
 
     def showOrthInfo(self):
         for m in self.modules():
-            if isinstance(m, SNConv2d):
+            if isinstance(m, SVDConv2d):
                 m.showOrthInfo()
 
 
-def sn_resnet(**kwargs):
+def svd_resnet(**kwargs):
     """
     Constructs a SNResNet model.
     """
     return SNResNet(**kwargs)
 
-def sn_resnet110(**kwargs):
+def svd_resnet110(**kwargs):
     """Constructs a SNResNet-18 model.
 
     Args:
@@ -175,7 +189,7 @@ def sn_resnet110(**kwargs):
     model = SNResNet(110, **kwargs)
     return model
 
-def sn_resnet56(**kwargs):
+def svd_resnet56(**kwargs):
     """Constructs a SNResNet-56 model.
 
     Args:
@@ -184,7 +198,7 @@ def sn_resnet56(**kwargs):
     model = SNResNet(56, **kwargs)
     return model
 
-def sn_resnet44(**kwargs):
+def svd_resnet44(**kwargs):
     """Constructs a SNResNet-44 model.
 
     Args:
@@ -193,7 +207,7 @@ def sn_resnet44(**kwargs):
     model = SNResNet(44, **kwargs)
     return model
 
-def sn_resnet32(**kwargs):
+def svd_resnet32(**kwargs):
     """Constructs a SNResNet-32 model.
 
     Args:
@@ -202,7 +216,7 @@ def sn_resnet32(**kwargs):
     model = SNResNet(32, **kwargs)
     return model
 
-def sn_resnet20(**kwargs):
+def svd_resnet20(**kwargs):
     """Constructs a SNResNet-20 model.
 
     Args:
@@ -211,7 +225,7 @@ def sn_resnet20(**kwargs):
     model = SNResNet(20, **kwargs)
     return model
 
-def sn_wresnet20(**kwargs):
+def svd_wresnet20(**kwargs):
     """Constructs a Wide SNResNet-20 model.
 
     Args:
@@ -220,7 +234,7 @@ def sn_wresnet20(**kwargs):
     model = SNResNet(20, nfilter = [64,128,256], **kwargs)
     return model
 
-def sn_wresnet32(**kwargs):
+def svd_wresnet32(**kwargs):
     """Constructs a Wide SNResNet-32 model.
 
     Args:
@@ -229,7 +243,7 @@ def sn_wresnet32(**kwargs):
     model = SNResNet(32, nfilter = [64,128,256], **kwargs)
     return model
 
-def sn_wresnet44(**kwargs):
+def svd_wresnet44(**kwargs):
     """Constructs a Wide SNResNet-44 model.
 
     Args:
@@ -238,7 +252,7 @@ def sn_wresnet44(**kwargs):
     model = SNResNet(44, nfilter = [64,128,256], **kwargs)
     return model
 
-def sn_wresnet110(**kwargs):
+def svd_wresnet110(**kwargs):
     """Constructs a Wide SNResNet-110 model.
 
     Args:

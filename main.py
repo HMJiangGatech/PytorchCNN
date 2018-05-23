@@ -45,6 +45,7 @@ BATCH_SIZE = 128
 
 USE_PROJ = False
 ORTH_REG = 0
+SPECT_REG = 0
 
 PRINT_FREQ = 100
 SHOW_PROGRESS = False
@@ -244,6 +245,8 @@ def train(train_loader, model, criterion, optimizer, epoch, verbose = True, verb
         loss = criterion(output, target)
         if ORTH_REG > 0:
             loss += ORTH_REG*model.orth_reg()
+        if SPECT_REG > 0:
+            loss += SPECT_REG*model.spectral_reg()
 
         # measure accuracy and record loss
         prec1, prec5 = accuracy(output.data, target, topk=(1, 5))

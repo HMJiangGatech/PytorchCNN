@@ -10,3 +10,4 @@ from .densenet import *
 from .sphereresnet import *
 from .snresnet import *
 from .orthresnet import *
+from .svdresnet import *
