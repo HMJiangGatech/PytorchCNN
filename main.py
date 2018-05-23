@@ -133,6 +133,8 @@ def main():
     else:
         print("=> creating model '{}'".format(ARCH))
         model = models.__dict__[ARCH](num_classes=num_classes).to(DEVICE)
+    if USE_CUDA:
+        model = torch.nn.DataParallel(model)
 
     print('    Total params: %.2fM' % (sum(p.numel() for p in model.parameters())/1000000.0))
     print(model)
