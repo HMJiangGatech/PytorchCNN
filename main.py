@@ -190,7 +190,7 @@ def main():
             'arch': ARCH,
             'state_dict': model.state_dict(),
             'best_prec1': best_prec1,
-            'optimizer' : optimizer_d.state_dict(),
+            'optimizer' : optimizer.state_dict(),
         }, is_best, epoch, savepath = ROOTPATH)
 
         if SHOW_SV_INFO:
