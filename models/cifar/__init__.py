@@ -8,5 +8,5 @@ from .wrn import *
 from .preresnet import *
 from .densenet import *
 from .sphereresnet import *
-from .simplexresnet import *
+from .snresnet import *
 from .orthresnet import *

@@ -10,9 +10,9 @@ from torch.nn import functional as F
 from torch.autograd import Variable
 import math
 
-__all__ = ['Orth_Plane_Conv2d']
+__all__ = ['SVD_Conv2d']
 
-class Orth_Plane_Conv2d(_ConvNd):
+class SVD_Conv2d(_ConvNd):
 
     def __init__(self, in_channels, out_channels, kernel_size, stride=1,
                 padding=0, dilation=1, groups=1, bias=False,

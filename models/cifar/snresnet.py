@@ -1,30 +1,32 @@
 from __future__ import absolute_import
 
-'''Resnet with Simplex Convolution Laer
+'''SphereNet
+
+WResnet is 4x wider
 '''
 import torch.nn as nn
 import math
-from ..SimplexConv import Simplex_Conv2d
+from ..SNConv import SNConv2d
 
 
-__all__ = ['simplex_resnet','simplex_resnet110','simplex_resnet56','simplex_resnet44',
-        'simplex_resnet32','simplex_resnet20','simplex_wresnet20','simplex_wresnet44','simplex_wresnet110']
+__all__ = ['sn_resnet','sn_resnet110','sn_resnet56','sn_resnet44','sn_resnet32','sn_resnet20',
+            'sn_wresnet20','sn_wresnet32','sn_wresnet44','sn_wresnet110']
 
-def simplex_conv3x3(in_planes, out_planes, stride=1):
-    "simplex 3x3 convolution with padding"
-    return Simplex_Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
+def snconv3x3(in_planes, out_planes, stride=1):
+    "3x3 convolution with padding"
+    return SNConv2d(in_planes, out_planes, kernel_size=3, stride=stride,
                      padding=1, bias=False)
 
 
-class SimplexBasicBlock(nn.Module):
+class SNBasicBlock(nn.Module):
     expansion = 1
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(SimplexBasicBlock, self).__init__()
-        self.sconv1 = simplex_conv3x3(inplanes, planes, stride)
+        super(SNBasicBlock, self).__init__()
+        self.conv1 = snconv3x3(inplanes, planes, stride)
         self.bn1 = nn.BatchNorm2d(planes)
         self.relu = nn.ReLU(inplace=True)
-        self.sconv2 = simplex_conv3x3(planes, planes)
+        self.conv2 = snconv3x3(planes, planes)
         self.bn2 = nn.BatchNorm2d(planes)
         self.downsample = downsample
         self.stride = stride
@@ -32,11 +34,11 @@ class SimplexBasicBlock(nn.Module):
     def forward(self, x):
         residual = x
 
-        out = self.sconv1(x)
+        out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
 
-        out = self.sconv2(out)
+        out = self.conv2(out)
         out = self.bn2(out)
 
         if self.downsample is not None:
@@ -48,17 +50,17 @@ class SimplexBasicBlock(nn.Module):
         return out
 
 
-class SimplexBottleneck(nn.Module):
+class SNBottleneck(nn.Module):
     expansion = 4
 
     def __init__(self, inplanes, planes, stride=1, downsample=None):
-        super(SimplexBottleneck, self).__init__()
-        self.sconv1 = Simplex_Conv2d(inplanes, planes, kernel_size=1, bias=False)
+        super(SNBottleneck, self).__init__()
+        self.conv1 = SNConv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
-        self.sconv2 = Simplex_Conv2d(planes, planes, kernel_size=3, stride=stride,
+        self.conv2 = SNConv2d(planes, planes, kernel_size=3, stride=stride,
                                padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
-        self.sconv3 = Simplex_Conv2d(planes, planes * self.expansion, kernel_size=1, bias=False)
+        self.conv3 = SNConv2d(planes, planes * self.expansion, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes * self.expansion)
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
@@ -67,15 +69,15 @@ class SimplexBottleneck(nn.Module):
     def forward(self, x):
         residual = x
 
-        out = self.sconv1(x)
+        out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
 
-        out = self.sconv2(out)
+        out = self.conv2(out)
         out = self.bn2(out)
         out = self.relu(out)
 
-        out = self.sconv3(out)
+        out = self.conv3(out)
         out = self.bn3(out)
 
         if self.downsample is not None:
@@ -87,18 +89,18 @@ class SimplexBottleneck(nn.Module):
         return out
 
 
-class SimplexResNet(nn.Module):
+class SphereResNet(nn.Module):
 
     def __init__(self, depth, nfilter = [16,32,64], num_classes=10):
-        super(SimplexResNet, self).__init__()
+        super(SphereResNet, self).__init__()
         # Model type specifies number of layers for CIFAR-10 model
         assert (depth - 2) % 6 == 0, 'depth should be 6n+2'
         n = (depth - 2) // 6
 
-        block = SimplexBottleneck if depth >=44 else SimplexBasicBlock
+        block = SNBottleneck if depth >=44 else SNBasicBlock
 
         self.inplanes = nfilter[0]
-        self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=3, padding=1,
+        self.conv1 = SNConv2d(3, self.inplanes, kernel_size=3, padding=1,
                                bias=False)
         self.bn1 = nn.BatchNorm2d(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
@@ -119,10 +121,7 @@ class SimplexResNet(nn.Module):
         )
 
         for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, nn.BatchNorm2d):
+            if isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
 
@@ -130,7 +129,7 @@ class SimplexResNet(nn.Module):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
-                nn.Conv2d(self.inplanes, planes * block.expansion,
+                SNConv2d(self.inplanes, planes * block.expansion,
                           kernel_size=1, stride=stride, bias=False),
                 nn.BatchNorm2d(planes * block.expansion),
             )
@@ -152,84 +151,98 @@ class SimplexResNet(nn.Module):
 
     def project(self):
         for m in self.modules():
-            if isinstance(m, Simplex_Conv2d):
+            if isinstance(m, SNConv2d):
                 m.project()
 
+    def showOrthInfo(self):
+        for m in self.modules():
+            if isinstance(m, SNConv2d):
+                m.showOrthInfo()
 
-def simplex_resnet(**kwargs):
-    """
-    Constructs a SimplexResNet model.
-    """
-    return SimplexResNet(**kwargs)
 
-def simplex_resnet110(**kwargs):
-    """Constructs a SimplexResNet-18 model.
+def sn_resnet(**kwargs):
+    """
+    Constructs a SphereResNet model.
+    """
+    return SphereResNet(**kwargs)
+
+def sn_resnet110(**kwargs):
+    """Constructs a SphereResNet-18 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = SimplexResNet(110, **kwargs)
+    model = SphereResNet(110, **kwargs)
     return model
 
-def simplex_resnet56(**kwargs):
-    """Constructs a SimplexResNet-56 model.
+def sn_resnet56(**kwargs):
+    """Constructs a SphereResNet-56 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = SimplexResNet(56, **kwargs)
+    model = SphereResNet(56, **kwargs)
     return model
 
-def simplex_resnet44(**kwargs):
-    """Constructs a SimplexResNet-44 model.
+def sn_resnet44(**kwargs):
+    """Constructs a SphereResNet-44 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = SimplexResNet(44, **kwargs)
+    model = SphereResNet(44, **kwargs)
     return model
 
-def simplex_resnet32(**kwargs):
-    """Constructs a SimplexResNet-32 model.
+def sn_resnet32(**kwargs):
+    """Constructs a SphereResNet-32 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = SimplexResNet(32, **kwargs)
+    model = SphereResNet(32, **kwargs)
     return model
 
-def simplex_resnet20(**kwargs):
-    """Constructs a SimplexResNet-20 model.
+def sn_resnet20(**kwargs):
+    """Constructs a SphereResNet-20 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = SimplexResNet(20, **kwargs)
+    model = SphereResNet(20, **kwargs)
     return model
 
-def simplex_wresnet20(**kwargs):
-    """Constructs a Wide SimplexResNet-20 model.
+def sn_wresnet20(**kwargs):
+    """Constructs a Wide SphereResNet-20 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = SimplexResNet(20, nfilter = [64,128,256], **kwargs)
+    model = SphereResNet(20, nfilter = [64,128,256], **kwargs)
     return model
 
-def simplex_wresnet44(**kwargs):
-    """Constructs a Wide SimplexResNet-44 model.
+def sn_wresnet32(**kwargs):
+    """Constructs a Wide SphereResNet-32 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = SimplexResNet(44, nfilter = [64,128,256], **kwargs)
+    model = SphereResNet(32, nfilter = [64,128,256], **kwargs)
     return model
 
-def simplex_wresnet110(**kwargs):
-    """Constructs a Wide SimplexResNet-110 model.
+def sn_wresnet44(**kwargs):
+    """Constructs a Wide SphereResNet-44 model.
 
     Args:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
-    model = SimplexResNet(110, nfilter = [64,128,256], **kwargs)
+    model = SphereResNet(44, nfilter = [64,128,256], **kwargs)
+    return model
+
+def sn_wresnet110(**kwargs):
+    """Constructs a Wide SphereResNet-110 model.
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+    """
+    model = SphereResNet(110, nfilter = [64,128,256], **kwargs)
     return model
