@@ -15,7 +15,7 @@ SHOW_SV_INFO = False
 SHOW_SV_EPOCH = []
 
 # Orth Parameters
-ORTH_REG = 10
+ORTH_REG = 0.01
 
 main()
 DATASET = "cifar100"
