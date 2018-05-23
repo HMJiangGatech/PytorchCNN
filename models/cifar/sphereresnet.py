@@ -121,7 +121,7 @@ class SphereResNet(nn.Module):
         )
 
         for m in self.modules():
-            elif isinstance(m, nn.BatchNorm2d):
+            if isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
 
