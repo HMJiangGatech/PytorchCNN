@@ -232,14 +232,12 @@ def train(train_loader, model, criterion, optimizer, epoch, verbose = True, verb
         # measure data loading time
         data_time.update(time.time() - end)
 
-        if USE_CUDA:
-            target = target.cuda(async=True)
-        input_var = torch.autograd.Variable(input)
-        target_var = torch.autograd.Variable(target)
+        input = input.to(DEVICE)
+        target = target.to(DEVICE)
 
         # compute output
-        output = model(input_var)
-        loss = criterion(output, target_var)
+        output = model(input)
+        loss = criterion(output, target)
 
         # measure accuracy and record loss
         prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
@@ -287,14 +285,12 @@ def validate(test_loader, model, criterion, verbose = True, verbose_sum = True):
     end = time.time()
     for i, (input, target) in enumerate(test_loader):
 
-        if USE_CUDA:
-            target = target.cuda(async=True)
-        input_var = torch.autograd.Variable(input, volatile=True)
-        target_var = torch.autograd.Variable(target, volatile=True)
+        input = input.to(DEVICE)
+        target = target.to(DEVICE)
 
         # compute output
-        output = model(input_var)
-        loss = criterion(output, target_var)
+        output = model(input)
+        loss = criterion(output, target)
 
         # measure accuracy and record loss
         prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
