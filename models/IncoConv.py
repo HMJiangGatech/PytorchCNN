@@ -32,7 +32,7 @@ class IncoConv2d(conv._ConvNd):
     def W_(self):
         originSize = self.weight.data.size()
         outputSize = self.weight.data.size()[0]
-        self.weight.data =  self.weight.data/ torch.norm(self.weight.data.view(outputSize,-1),2,1).clamp(min = 1e-8)
+        self.weight.data =  self.weight.data/ torch.norm(self.weight.data.view(outputSize,-1),2,1).clamp(min = 1e-8).view(-1,1,1,1)
         return self.weight * self.scale
 
     def forward(self, input):
