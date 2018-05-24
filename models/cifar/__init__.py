@@ -11,3 +11,4 @@ from .sphereresnet import *
 from .snresnet import *
 from .orthresnet import *
 from .svdresnet import *
+from .incoresnet import *
