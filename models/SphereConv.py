@@ -29,7 +29,7 @@ class Sphere_Conv2d(_ConvNd):
         self.scale.data.fill_(1)
 
         self.eps = 1e-8
-        
+
         if norm:
             self.register_buffer('input_norm_wei',torch.ones(1, in_channels // groups, *kernel_size))
 
@@ -44,7 +44,9 @@ class Sphere_Conv2d(_ConvNd):
 
         _input = input
         self.project()
-        _output = F.conv2d(input, self.weight*self.scale, self.bias, self.stride,
+        _weight = self.weight
+        _weight = _weight/ torch.norm(_weight.view(self.out_channels,-1),2,1).clamp(min = self.eps).view(-1,1,1,1)
+        _output = F.conv2d(input, _weight*self.scale, self.bias, self.stride,
                         self.padding, self.dilation, self.groups)
 
         input_norm = torch.sqrt(F.conv2d(_input**2, Variable(self.input_norm_wei), None,
