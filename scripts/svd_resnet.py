@@ -16,7 +16,7 @@ SHOW_SV_EPOCH = []
 
 # Orth Parameters
 ORTH_REG = 0.1
-SPECT_REG = 0.1
+SPECT_REG = 10
 WEIGHT_DECAY = 0
 
 main()
