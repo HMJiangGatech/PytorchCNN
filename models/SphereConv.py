@@ -15,8 +15,7 @@ __all__ = ['Sphere_Conv2d']
 class Sphere_Conv2d(_ConvNd):
 
     def __init__(self, in_channels, out_channels, kernel_size, stride=1,
-                padding=0, dilation=1, groups=1, bias=False,
-                norm=True, w_norm=False, doini = 2):
+                padding=0, dilation=1, groups=1, bias=False, doini = 2):
 
         kernel_size = _pair(kernel_size)
         stride = _pair(stride)
@@ -30,8 +29,7 @@ class Sphere_Conv2d(_ConvNd):
         self.scale.data.fill_(1)
 
         self.eps = 1e-8
-        self.w_norm = w_norm
-        self.norm = norm
+        
         if norm:
             self.register_buffer('input_norm_wei',torch.ones(1, in_channels // groups, *kernel_size))
 
@@ -48,10 +46,10 @@ class Sphere_Conv2d(_ConvNd):
         self.project()
         _output = F.conv2d(input, self.weight*self.scale, self.bias, self.stride,
                         self.padding, self.dilation, self.groups)
-        if self.norm:
-            input_norm = torch.sqrt(F.conv2d(_input**2, Variable(self.input_norm_wei), None,
-                                self.stride, self.padding, self.dilation, self.groups).clamp(min = self.eps))
-            _output = _output/input_norm
+
+        input_norm = torch.sqrt(F.conv2d(_input**2, Variable(self.input_norm_wei), None,
+                            self.stride, self.padding, self.dilation, self.groups).clamp(min = self.eps))
+        _output = _output/input_norm
 
         return _output
 

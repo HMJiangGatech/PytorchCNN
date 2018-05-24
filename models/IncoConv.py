@@ -46,8 +46,6 @@ class IncoConv2d(conv._ConvNd):
         originSize = self.weight.data.size()
         outputSize = self.weight.data.size()[0]
         W = self.weight.data.view(outputSize,-1)
-        sigma = torch.sum(F.linear(self.u, torch.transpose(W, 0, 1)) * self.v)
-        W = W / sigma
         _, s, _ = torch.svd(W.t())
         print('Singular Value Summary: ')
         print('max :',s.max().item())
