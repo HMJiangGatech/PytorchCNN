@@ -44,11 +44,9 @@ class Sphere_Conv2d(_ConvNd):
 
     def forward(self, input):
 
-        _weight = self.weight
         _input = input
-        if self.w_norm or self.norm:
-            _weight = _weight/ torch.norm(_weight.view(self.out_channels,-1),2,1).clamp(min = self.eps).view(-1,1,1,1)
-        _output = F.conv2d(input, _weight*self.scale, self.bias, self.stride,
+        self.project()
+        _output = F.conv2d(input, self.weight*self.scale, self.bias, self.stride,
                         self.padding, self.dilation, self.groups)
         if self.norm:
             input_norm = torch.sqrt(F.conv2d(_input**2, Variable(self.input_norm_wei), None,
