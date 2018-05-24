@@ -152,7 +152,7 @@ class IncoResNet(nn.Module):
     def orth_reg(self):
         reg = 0
         for m in self.modules():
-            if isinstance(m, Orth_Conv2d):
+            if isinstance(m, IncoConv2d):
                 reg += m.orth_reg()
         return reg
 
