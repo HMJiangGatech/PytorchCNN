@@ -149,6 +149,13 @@ class IncoResNet(nn.Module):
 
         return x
 
+    def orth_reg(self):
+        reg = 0
+        for m in self.modules():
+            if isinstance(m, Orth_Conv2d):
+                reg += m.orth_reg()
+        return reg
+
     def project(self):
         for m in self.modules():
             if isinstance(m, IncoConv2d):
