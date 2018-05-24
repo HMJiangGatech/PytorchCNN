@@ -46,6 +46,9 @@ class SVDConv2d(Module):
         self.output_padding = _pair(0)
         self.groups = groups
 
+        self.scale = Parameter(torch.Tensor(1))
+        self.scale.data.fill_(1)
+
         if self.out_channels  <= self.total_in_dim:
             self.Uweight = Parameter(torch.Tensor(self.out_channels, self.out_channels))
             self.Dweight = Parameter(torch.Tensor(self.out_channels))
@@ -81,7 +84,7 @@ class SVDConv2d(Module):
     @property
     def W_(self):
         self.update_sigma()
-        return self.Uweight.mm(self.Dweight.diag()).mm(self.Vweight).view(self.weiSize)
+        return self.Uweight.mm(self.Dweight.diag()).mm(self.Vweight).view(self.weiSize)*self.scale
 
     def forward(self, input):
         _output = F.conv2d(input, self.W_, self.bias, self.stride,

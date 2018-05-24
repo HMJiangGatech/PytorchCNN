@@ -38,6 +38,10 @@ class SNConv2d(conv._ConvNd):
         super(SNConv2d, self).__init__(
             in_channels, out_channels, kernel_size, stride, padding, dilation,
             False, _pair(0), groups, bias)
+        
+        self.scale = Parameter(torch.Tensor(1))
+        self.scale.data.fill_(1)
+
         self.weight.data.normal_(0,0.02)
         if bias:
             self.bias.data.fill_(0)
@@ -50,7 +54,7 @@ class SNConv2d(conv._ConvNd):
         sigma, _u, _v = max_singular_value(w_mat, self.u)
         self.u.copy_(_u)
         self.v.copy_(_v)
-        return self.weight / sigma
+        return self.weight / sigma * self.scale
 
     def forward(self, input):
         return F.conv2d(input, self.W_, self.bias, self.stride,

@@ -8,6 +8,7 @@ from torch.nn.modules.conv import _ConvNd
 from torch.nn.modules import Module
 from torch.nn import functional as F
 from torch.autograd import Variable
+from torch.nn.parameter import Parameter
 import math
 
 __all__ = ['Orth_Plane_Conv2d']
@@ -25,6 +26,9 @@ class Orth_Plane_Conv2d(_ConvNd):
             in_channels, out_channels, kernel_size, stride, padding, dilation,
             False, _pair(0), groups, bias)
 
+        self.scale = Parameter(torch.Tensor(1))
+        self.scale.data.fill_(1)
+
         self.register_buffer('Im',torch.eye(out_channels))
 
         self.eps = 1e-8
@@ -34,7 +38,7 @@ class Orth_Plane_Conv2d(_ConvNd):
         self.project(style='qr', interval = 1)
 
     def forward(self, input):
-        _output = F.conv2d(input, self.weight, self.bias, self.stride,
+        _output = F.conv2d(input, self.weight*self.scale, self.bias, self.stride,
                         self.padding, self.dilation, self.groups)
 
         return _output
